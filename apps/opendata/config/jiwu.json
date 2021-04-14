@@ -1,0 +1,189 @@
+{
+  "feature_args": {
+    "-input": {
+      "dest": "input_path",
+      "help": "Input data path",
+      "required": "True"
+    },
+    "-output": {
+      "dest": "output_path",
+      "help": "Output data path",
+      "required": "True"
+    },
+    "-mapping": {
+      "dest": "mapping_path",
+      "help": "Mapping data path",
+      "required": "True"
+    },
+    "-run_date": {
+      "dest": "run_date",
+      "help": "As-of date of running process",
+      "required": "True"
+    },
+    "-description": {
+      "dest": "description",
+      "help": "Process description",
+      "required": "True"
+
+  },
+    "-Trans_date": {
+      "dest": "Trans_date",
+      "help": "As-of date of transformation process",
+      "required": "True"},
+
+    "-Trans_method": {
+      "dest": "Trans_method",
+      "help": "Transformation method",
+      "required": "True"}
+  },
+  "extraction": {
+    "description": "Ji Wu",
+    "input": {
+      "read": {
+        "file_type": "excel",
+        "apply_dtype": {
+          "COURSE_CODE": "str",
+          "CREDITS": "float",
+          "SEMESTERS": "int",
+          "TA": "int",
+          "GROUPCODE": "str",
+          "TACODE": "str",
+          "PASSWORD": "str"
+        }
+      },
+      "plugin": null
+    },
+    "mapping": {
+      "read": {
+        "file_type": "excel",
+        "skip_rows": 0,
+        "use_cols": "A,B",
+        "sheet_name": 0,
+        "apply_dtype": {
+          "CODE": "str",
+          "ROSTER": "int"
+        }
+      },
+      "left_on": [
+        "COURSE_CODE"
+      ],
+      "right_on": [
+        "CODE"
+      ],
+      "plugin": null
+    },
+    "assign": {
+      "col_const": {
+        "ASSIGN_ACCOUNT": "Ji Wu",
+
+        "ASSIGN_COMMENTS": "NYU",
+        "ASSIGN_SCHOOL": "Tandon"
+      },
+      "col_var": {
+        "RUN_DATE": "run_date",
+        "ASSIGN_DESCRIPTION": "description"
+      },
+      "plugin": null
+    },
+    "output": {
+      "rearrange": {
+        "col_rename": {
+          "ASSIGN_ACCOUNT": "ACCOUNT",
+          "CREDITS": "AMOUNT",
+          "SEMESTERS": "CURRENCY",
+          "PASSWORD": "EXT_ACCOUNT",
+          "ROSTER": "MAP_ACCOUNT",
+          "ASSIGN_COMMENTS": "COMMENTS",
+          "COURSE_CODE": "TYPE",
+          "ASSIGN_DESCRIPTION": "DESCRIPTION",
+          "RUN_DATE": "RUN_DATE"
+
+
+        },
+        "col_reorder": [
+          "RUN_DATE",
+          "DESCRIPTION",
+          "AMOUNT",
+          "CURRENCY",
+          "ACCOUNT",
+          "EXT_ACCOUNT",
+          "MAP_ACCOUNT",
+          "TYPE",
+          "COMMENTS"
+        ],
+        "plugin": null
+      },
+      "write": {
+        "file_type": "csv",
+        "separator": "|"
+      },
+      "plugin": "frelabpy.apps.opendata.src.plugin_util.add_datetime_into_comments_plugin"
+
+    }
+  },
+  "transformation": {
+        "description": "Ji Wu",
+        "input": {
+            "read": {
+                "file_type": "csv",
+                "separator": "|",
+                "apply_dtype": {
+                    "RUN_DATE": "str",
+                    "DESCRIPTION":"str",
+                    "AMOUNT": "str",
+                    "CURRENCY": "str",
+                    "ACCOUNT": "str",
+                    "EXT_ACCOUNT": "str",
+                    "MAP_ACCOUNT":"int",
+                    "TYPE": "str",
+                    "COMMENTS": "str"
+
+                }
+            },
+      "plugin": null
+    },
+    "aggregate": {
+            "group_by": ["CURRENCY", "TYPE"],
+            "agg": {
+                "MAP_ACCOUNT": "sum"
+            }
+        },
+    "assign": {
+      "col_const": {
+        "PROCESS_TYPE": "TRFM",
+        "POD_CODE": "JiWu",
+        "ASSIGN_COMMENTS": "Duplicated"
+      },
+      "col_var": {
+        "END_DATE": "Trans_date"
+      },
+      "plugin": null
+    },
+    "dupl": {
+      "col_const": {
+        "GENERIC_COMMENTS": "Duplicated"
+      }
+    },
+    "output": {
+      "rearrange": {
+        "col_rename": {
+          "CURRENCY":"SEMESTERS" ,
+          "TYPE":"COURSE",
+          "MAP_ACCOUNT": "ROSTER",
+          "PROCESS_TYPE": "TYPE",
+          "GENERIC_COMMENTS":"GENERIC_COMMENTS"
+
+        },
+        "col_reorder": [
+                    "SEMESTERS", "COURSE", "ROSTER", "TYPE","END_DATE", "POD_CODE", "GENERIC_COMMENTS"
+        ],
+        "plugin": null
+      },
+      "write": {
+        "file_type": "csv",
+        "separator": "|"
+      },
+      "plugin": null
+    }
+    }
+}
